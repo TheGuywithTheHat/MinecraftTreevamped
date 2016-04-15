@@ -1,0 +1,16 @@
+[
+{
+  "modid": "treevamped",
+  "name": "Minecraft Treevamped",
+  "description": "A mod that makes trees grow in special patterns over time.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://treevamped.wordpress.com/",
+  "updateUrl": "https://treevamped.wordpress.com/category/release/",
+  "authorList": ["TheGuywithTheHat"],
+  "credits": "The MCP guys, for making Minecraft modding possible; the Forge and FML guys, for making this great API; TheGuywithTheHat, for making the mod itself.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
