@@ -1,62 +1,59 @@
 package com.treevamped.blocks;
 
 import java.util.List;
+import java.util.Random;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.BlockPlanks;
-import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyEnum;
+import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockGrowth extends BlockLeaves {
+    public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 15);
     
-    public static final PropertyEnum<BlockPlanks.EnumType> VARIANT = PropertyEnum.<BlockPlanks.EnumType> create("variant", BlockPlanks.EnumType.class);
-            
+    public BlockPlanks.EnumType type;
+   
     public BlockGrowth() {
         super();
-        this.setUnlocalizedName("growthLeaf");
+        setRegistryName("growth");
+        setUnlocalizedName(getRegistryName().toString());
         
-        this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, BlockPlanks.EnumType.OAK).withProperty(CHECK_DECAY, Boolean.valueOf(true)).withProperty(DECAYABLE, Boolean.valueOf(true)));
+        //setDefaultState(this.blockState.getBaseState()/*.withProperty(LEVEL, new Integer(0))*/);
+        type = BlockPlanks.EnumType.OAK;
     }
+
     
     @Override
     protected void dropApple(World worldIn, BlockPos pos, IBlockState state, int chance) {
-        if((state.getValue(VARIANT) == BlockPlanks.EnumType.OAK || state.getValue(VARIANT) == BlockPlanks.EnumType.DARK_OAK) && worldIn.rand.nextInt(chance) == 0) {
+        if((type == BlockPlanks.EnumType.OAK || type == BlockPlanks.EnumType.DARK_OAK) && worldIn.rand.nextInt(chance) == 0) {
             spawnAsEntity(worldIn, pos, new ItemStack(Items.apple));
         }
     }
     
     @Override
     protected int getSaplingDropChance(IBlockState state) {
-        return state.getValue(VARIANT) == BlockPlanks.EnumType.JUNGLE ? 40 : super.getSaplingDropChance(state);
-    }
-    
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
-        list.add(new ItemStack(itemIn, 1, 0));
-        list.add(new ItemStack(itemIn, 1, 1));
-        list.add(new ItemStack(itemIn, 1, 2));
-        list.add(new ItemStack(itemIn, 1, 3));
-        list.add(new ItemStack(itemIn, 1, 4));
-        list.add(new ItemStack(itemIn, 1, 5));
+        return type == BlockPlanks.EnumType.JUNGLE ? 40 : super.getSaplingDropChance(state);
     }
     
     @Override
     protected ItemStack createStackedBlock(IBlockState state) {
-        return new ItemStack(Item.getItemFromBlock(this), 1, state.getValue(VARIANT).getMetadata());
+        return new ItemStack(Item.getItemFromBlock(this), 1, type.getMetadata());
     }
     
     /**
@@ -64,7 +61,7 @@ public class BlockGrowth extends BlockLeaves {
      */
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(VARIANT, this.getWoodType(meta)).withProperty(DECAYABLE, new Boolean(true)).withProperty(CHECK_DECAY, Boolean.valueOf((meta & 8) > 0));
+        return this.getDefaultState()/*.withProperty(LEVEL, new Integer(meta))*/;
     }
     
     /**
@@ -72,26 +69,17 @@ public class BlockGrowth extends BlockLeaves {
      */
     @Override
     public int getMetaFromState(IBlockState state) {
-        int i = 0;
-        i = i | state.getValue(VARIANT).getMetadata();
-        
-        if(state.getValue(CHECK_DECAY).booleanValue()) {
-            i |= 8;
-        }
-        
-        return i;
+        return 0;//state.getValue(LEVEL).intValue();
     }
     
     @Override
     public BlockPlanks.EnumType getWoodType(int meta) {
-        return BlockPlanks.EnumType.byMetadata(meta & 7);
+        return BlockPlanks.EnumType.OAK;
     }
     
     @Override
     protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, new IProperty[] {
-                VARIANT, CHECK_DECAY, DECAYABLE
-        });
+        return new BlockStateContainer(this/*, LEVEL*/);
     }
     
     /**
@@ -101,7 +89,7 @@ public class BlockGrowth extends BlockLeaves {
      */
     @Override
     public int damageDropped(IBlockState state) {
-        return state.getValue(VARIANT).getMetadata();
+        return 0;
     }
     
     @Override
@@ -115,6 +103,32 @@ public class BlockGrowth extends BlockLeaves {
     
     @Override
     public List<ItemStack> onSheared(ItemStack item, net.minecraft.world.IBlockAccess world, BlockPos pos, int fortune) {
-        return java.util.Arrays.asList(new ItemStack(this, 1, world.getBlockState(pos).getValue(VARIANT).getMetadata()));
+        Block block = type.getMetadata() < 4 ? Blocks.leaves : Blocks.leaves2;
+        int meta = type.getMetadata() % 4;
+        return java.util.Arrays.asList(new ItemStack(block, 1, meta));
+    }
+    
+    /**
+     * Just here to prevent BlockLeaves's updateTick from running.
+     */
+    @Override
+    public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+        //
+    }
+    
+    @Override
+    @SideOnly(Side.CLIENT)
+    public BlockRenderLayer getBlockLayer()
+    {
+        return Minecraft.isFancyGraphicsEnabled() ? BlockRenderLayer.CUTOUT_MIPPED : BlockRenderLayer.SOLID;
+    }
+    
+    /**
+     * Used to determine ambient occlusion and culling when rebuilding chunks for render
+     */
+    @Override
+    public boolean isOpaqueCube(IBlockState state)
+    {
+        return !Minecraft.isFancyGraphicsEnabled();
     }
 }
