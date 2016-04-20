@@ -2,6 +2,8 @@ package com.treevamped;
 
 import com.treevamped.blocks.BlockGrowth;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.ItemBlock;
 import net.minecraftforge.event.terraingen.SaplingGrowTreeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -23,6 +25,7 @@ public class TreevampedMod
         ItemBlock growthItem = new ItemBlock(growth);
         GameRegistry.register(growth);
         GameRegistry.register(growthItem.setRegistryName(growth.getRegistryName()));
+        Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(growthItem, 0, new ModelResourceLocation(growthItem.getRegistryName(), "inventory"));
     }
     
     @EventHandler
