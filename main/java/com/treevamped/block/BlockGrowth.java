@@ -1,4 +1,4 @@
-package com.treevamped.blocks;
+package com.treevamped.block;
 
 import java.util.List;
 import java.util.Random;
@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
@@ -27,7 +28,9 @@ public class BlockGrowth extends BlockLeaves {
     public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 15);
     
     public BlockPlanks.EnumType type;
-   
+    
+    public ItemBlock item;
+    
     public BlockGrowth() {
         super();
         setRegistryName("growth");
@@ -101,7 +104,7 @@ public class BlockGrowth extends BlockLeaves {
     }
     
     @Override
-    public List<ItemStack> onSheared(ItemStack item, net.minecraft.world.IBlockAccess world, BlockPos pos, int fortune) {
+    public List<ItemStack> onSheared(ItemStack itemStack, net.minecraft.world.IBlockAccess world, BlockPos pos, int fortune) {
         Block block = type.getMetadata() < 4 ? Blocks.leaves : Blocks.leaves2;
         int meta = type.getMetadata() % 4;
         return java.util.Arrays.asList(new ItemStack(block, 1, meta));
@@ -112,6 +115,15 @@ public class BlockGrowth extends BlockLeaves {
      */
     @Override
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+        //
+    }
+    
+    /**
+     * Just here to prevent BlockLeaves's beginLeavesDecay from running.
+     */
+    @Override
+    public void beginLeavesDecay(IBlockState state, World world, BlockPos pos)
+    {
         //
     }
     
